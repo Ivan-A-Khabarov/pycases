@@ -1,79 +1,134 @@
-def read_phonebook(filename="phonebook.txt"):
-    """Читает телефонный справочник из файла."""
-    with open(filename, "a+"):
-        pass
+def work_with_phonebook():
+    choice = show_menu()
+    phone_book = read_txt('phonebook.txt')
+    while choice != 7:
+        try:
+            if choice == 1:
+                print_result(phone_book)
+            elif choice == 2:
+                last_name = input('Введите фамилию: ')
+                print(find_by_last_name(phone_book, last_name))
+            elif choice == 3:
+                last_name = input('Введите фамилию: ')
+                new_number = input('Введите новый номер: ')
+                print(change_number(phone_book, last_name, new_number))
+            elif choice == 4:
+                last_name = input('Введите фамилию: ')
+                print(delete_by_lastname(phone_book, last_name))
+            elif choice == 5:
+                number = input('Введите номер: ')
+                print(find_by_number(phone_book, number))
+            elif choice == 6:
+                user_data = input('Введите новые данные: ')
+                add_user(phone_book, user_data)
+                write_txt('phonebook.txt', phone_book)
 
-    with open(filename, "r") as file:
-        lines = file.readlines()
+        except ValueError:
+            print("Введите корректное значение.")
+        choice = show_menu()
 
-    phonebook = {}
-    for line in lines:
-        surname, name, phone = line.strip().split(";")
-        phonebook[surname] = (name, phone)
-    return phonebook
+def show_menu():
+    print("\nВыберите необходимое действие:\n"
+          "1. Отобразить весь справочник\n"
+          "2. Найти абонента по фамилии\n"
+          "3. Изменить номер абонента по фамилии\n"
+          "4. Удалить абонента по фамилии\n"
+          "5. Найти абонента по номеру телефона\n"
+          "6. Сохранить справочник/добавить данные в текстовом формате\n"
+          "7. Закончить работу.")
+    choice = int(input())
+    return choice
 
+def read_txt(filename):
+    phone_book = []
+    fields = ['Фамилия', 'Имя', 'Телефон', 'Описание']
 
-def write_phonebook(phonebook, filename="phonebook.txt"):
-    """Записывает телефонный справочник в файл."""
-    with open(filename, "w") as file:
-        for surname, (name, phone) in phonebook.items():
-            file.write(f"{surname};{name};{phone}\n")
+    with open(filename, 'r', encoding='utf-8') as phb:
+        for line in phb:
+            record = dict(zip(fields, line.strip().split(',')))  # Исправлено добавление записи в справочник
+            phone_book.append(record)
+    return phone_book
 
+def write_txt(filename, phone_book):
+    with open(filename, 'w', encoding='utf-8') as phout:
+        for record in phone_book:
+            s = ','.join(record.values())
+            phout.write(f'{s}\n')
 
-def add_entry(surname, name, phone):
-    phonebook = read_phonebook()
-    phonebook[surname] = (name, phone)
-    write_phonebook(phonebook)
+def read_txt(filename):
+    phone_book = []
+    fields = ['Фамилия', 'Имя', 'Телефон', 'Описание']
 
+    with open(filename, 'r', encoding='utf-8') as phb:
+        for line in phb:
+            record = dict(zip(fields, line.strip().split(',')))
+            phone_book.append(record)
+    return phone_book
 
-def update_entry(surname, name=None, phone=None):
-    phonebook = read_phonebook()
-    if surname in phonebook:
-        current_name, current_phone = phonebook[surname]
-        phonebook[surname] = (name if name else current_name, phone if phone else current_phone)
-        write_phonebook(phonebook)
+def find_by_last_name(phone_book, last_name):
+    found_contacts = []
 
+    for contact in phone_book:
+        if contact['Фамилия'] == last_name:
+            found_contacts.append(contact)
 
-def delete_entry(surname):
-    phonebook = read_phonebook()
-    if surname in phonebook:
-        del phonebook[surname]
-        write_phonebook(phonebook)
+    if not found_contacts:
+        return f"Абонент с фамилией '{last_name}' не найден."
+    else:
+        return found_contacts
 
+def print_result(phone_book):
+    if not phone_book:
+        print("Справочник пуст.")
+    else:
+        print("\nСправочник:")
+        for contact in phone_book:
+            print(f"Фамилия: {contact['Фамилия']}, Имя: {contact['Имя']}, Телефон: {contact['Телефон']}, Описание: {contact['Описание']}")
 
-def find_entry(surname):
-    phonebook = read_phonebook()
-    return phonebook.get(surname, None)
+def change_number(phone_book, last_name, new_number):
+    contact_found = False
 
-
-def main():
-    while True:
-        choice = input("Выберите действие (add/update/delete/find/quit): ").lower()
-        if choice == "quit":
+    for contact in phone_book:
+        if contact['Фамилия'] == last_name:
+            contact['Телефон'] = new_number
+            contact_found = True
             break
-        elif choice == "add":
-            surname = input("Введите фамилию: ")
-            name = input("Введите имя: ")
-            phone = input("Введите номер телефона: ")
-            add_entry(surname, name, phone)
-        elif choice == "update":
-            surname = input("Введите фамилию: ")
-            name = input("Введите новое имя (оставьте пустым, чтобы не менять): ")
-            phone = input("Введите новый номер телефона (оставьте пустым, чтобы не менять): ")
-            update_entry(surname, name, phone)
-        elif choice == "delete":
-            surname = input("Введите фамилию для удаления: ")
-            delete_entry(surname)
-        elif choice == "find":
-            surname = input("Введите фамилию для поиска: ")
-            entry = find_entry(surname)
-            if entry:
-                print(f"Имя: {entry[0]}, Номер телефона: {entry[1]}")
-            else:
-                print("Запись не найдена.")
-        else:
-            print("Неизвестное действие.")
 
+    if contact_found:
+        return f"Номер телефона для абонента с фамилией '{last_name}' успешно изменен."
+    else:
+        return f"Абонент с фамилией '{last_name}' не найден."
 
-if __name__ == "__main__":
-    main()
+def delete_by_lastname(phone_book, last_name):
+    for contact in phone_book:
+        if contact['Фамилия'] == last_name:
+            phone_book.remove(contact)
+            return f"Абонент с фамилией '{last_name}' успешно удален из справочника."
+
+    return f"Абонент с фамилией '{last_name}' не найден в справочнике."
+
+def find_by_number(phone_book, number):
+    found_contacts = []
+
+    for contact in phone_book:
+        if contact['Телефон'] == number:
+            found_contacts.append(contact)
+
+    if not found_contacts:
+        return f"Абонент с номером телефона '{number}' не найден."
+    else:
+        return found_contacts
+
+def add_user(phone_book, user_data):
+    user_data_list = user_data.split(',')
+    fields = ['Фамилия', 'Имя', 'Телефон', 'Описание']
+
+    if len(user_data_list) != len(fields):
+        print("Неверное количество полей для добавления абонента.")
+        return
+
+    new_user = dict(zip(fields, user_data_list))
+    phone_book.append(new_user)
+    print(f"Абонент {new_user['Фамилия']} успешно добавлен в справочник.")
+
+work_with_phonebook()
