@@ -83,7 +83,8 @@ def print_result(phone_book):
     else:
         print("\nСправочник:")
         for contact in phone_book:
-            print(f"Фамилия: {contact['Фамилия']}, Имя: {contact['Имя']}, Телефон: {contact['Телефон']}, Описание: {contact['Описание']}")
+            print(f"Фамилия: {contact['Фамилия']}, Имя: {contact['Имя']}, Телефон: {contact['Телефон']}, "
+                  f"Описание: {contact['Описание']}")
 
 def change_number(phone_book, last_name, new_number):
     contact_found = False
